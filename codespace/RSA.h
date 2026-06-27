@@ -6,9 +6,9 @@
 #include<cstdint>
 #include<windows.h>
 struct Key{
-    uint32_t exp;
-    uint32_t n;
-    Key(uint32_t e,uint32_t num){
+    uint64_t exp;
+    uint64_t n;
+    Key(uint64_t e,uint64_t num){
         exp = e;
         n = num;
     }
@@ -23,3 +23,4 @@ struct Keys{
     }
 };
 Keys ProductKeys();
+uint64_t EncryptOrDecryptMessage(uint64_t ms,Key key);

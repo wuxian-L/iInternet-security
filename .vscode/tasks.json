@@ -1,0 +1,30 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "type": "cppbuild",
+            "label": "C/C++: g++ build certificate project",
+            "command": "C:\\Program Files\\mingw64\\bin\\g++.exe",
+            "args": [
+                "-std=c++17",
+                "-g",
+                "${workspaceFolder}\\codespace\\certificate.cpp",
+                "${workspaceFolder}\\codespace\\RSA.cpp",
+                "${workspaceFolder}\\codespace\\MD5_hash.cpp",
+                "-o",
+                "${workspaceFolder}\\codespace\\certificate.exe"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "detail": "使用 MinGW g++ 编译证书模拟项目（certificate + RSA + MD5）"
+        }
+    ]
+}

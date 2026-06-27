@@ -2,110 +2,103 @@
 两个质数 p q
 质数相乘 N = p * q
 欧拉函数 ol(N) = (p-1)*(q-1) = T
-选择公钥 E E为质数且1 < 公钥 < T且不是T的因子
-(E,T)
-计算私钥 D (D*E)%T = 1
-(D,T)
+选择公钥 E，满足 1 < E < T 且 gcd(E,T)=1
+(E,N)
+计算私钥 D，满足 (D*E)%T = 1
+(D,N)
 */
 #include "RSA.h"
-bool isPrime(int n) {
+#include <algorithm>
+
+bool isPrime(uint64_t n) {
     if (n <= 1) return false;
-    for (int i = 2; i * i <= n; ++i) {
+    if (n == 2) return true;
+    if (n % 2 == 0) return false;
+    for (uint64_t i = 3; i * i <= n; i += 2) {
         if (n % i == 0)
             return false;
     }
     return true;
 }
-void selectPQ(int &p, int &q){
-    std::srand(std::time(0));
+
+// 生成较大的质数，使 N > 2^32，从而能够加密 32 位的哈希块
+void selectPQ(uint64_t &p, uint64_t &q){
     p = 0; q = 0;
     while(!isPrime(p)){
-        p = std::rand()%50 + 2;
+        p = static_cast<uint64_t>(std::rand()) % 30001 + 70000;
     }
     while(!isPrime(q) || q == p){
-        q = std::rand()%50 + 2;
+        q = static_cast<uint64_t>(std::rand()) % 30001 + 70000;
     }
 }
-int calculateT(int p,int q){
+
+uint64_t calculateT(uint64_t p, uint64_t q){
     return (p-1)*(q-1);
 }
-int calculatePublicKey(int T){
-    for(int e = 2;e < T;e++){
-        if(isPrime(e) && T%e != 0)
+
+static uint64_t gcd(uint64_t a, uint64_t b){
+    while(b != 0){
+        uint64_t t = a % b;
+        a = b;
+        b = t;
+    }
+    return a;
+}
+
+uint64_t calculatePublicKey(uint64_t T){
+    // 从 3 开始找第一个与 T 互质的奇数即可，避免遍历整个 T
+    for(uint64_t e = 3; e < T; e += 2){
+        if(gcd(e, T) == 1)
             return e;
     }
     return 0;
 }
-int calculatePrivateKey(int T,int b){
-    int r1 = T,r2 = b,t1 = 0,t2 = 1;
+
+uint64_t calculatePrivateKey(uint64_t T, uint64_t b){
+    long long r1 = static_cast<long long>(T);
+    long long r2 = static_cast<long long>(b);
+    long long t1 = 0, t2 = 1;
     while(r2 > 0){
-        int q = r1/r2;
-        int r = r1 - q*r2;
+        long long q = r1 / r2;
+        long long r = r1 - q * r2;
         r1 = r2;
         r2 = r;
 
-        int t = t1 - q*t2;
+        long long t = t1 - q * t2;
         t1 = t2;
         t2 = t;
     }
-    if(r1 == 1)
-        return t1 > 0? t1:t1 + T;
+    if(r1 == 1){
+        if(t1 > 0) return static_cast<uint64_t>(t1);
+        else return static_cast<uint64_t>(t1 + static_cast<long long>(T));
+    }
     return 0;
 }
-uint32_t Square_and_Multiply(uint32_t a,uint32_t x,uint32_t n){
-    uint32_t y = 1;
+
+uint64_t Square_and_Multiply(uint64_t a, uint64_t x, uint64_t n){
+    uint64_t y = 1;
+    a %= n;
     while(x > 0){
         if(x & 1)
-            y = (a*y)%n;
-        a = (a*a)%n;
+            y = static_cast<uint64_t>((__uint128_t)a * y % n);
+        a = static_cast<uint64_t>((__uint128_t)a * a % n);
         x >>= 1;
     }
     return y;
 }
-struct Key;
-struct Keys;
-uint32_t EncryptOrDecryptMessage(uint32_t ms,Key key){
-    return Square_and_Multiply(ms,key.exp,key.n);
-}
-Keys ProductKeys(){
-    int p, q;
-    selectPQ(p, q);
-    int n = p * q;
-    int T = calculateT(p,q);
-    int e = calculatePublicKey(T);
-    int d = calculatePrivateKey(T,e);
-    Key publickey = Key(e, n);
-    Key privatekey = Key(d, n);
-    return Keys(publickey,privatekey);
-}
-int main(){
-    SetConsoleOutputCP(65001);
-    int p, q;
-    selectPQ(p, q);
-    int n = p * q;
-    int T = calculateT(p,q);
-    int e = calculatePublicKey(T);
-    int d = calculatePrivateKey(T,e);
-    Key publickey = Key(e, n);
-    Key privatekey = Key(d, n);
-    uint32_t ms = 19;
-    uint32_t C = EncryptOrDecryptMessage(ms,publickey);
-    uint32_t M = EncryptOrDecryptMessage(C,privatekey);
 
-    std::cout << "p = " << p << ", q = " << q << std::endl;
-    std::cout << "n = " << n << ", T = " << T << std::endl;
-    std::cout << "e = " << e << ", d = " << d << std::endl;
-    std::cout << "Plaintext:  " << ms << std::endl;
-    std::cout << "Ciphertext: " << C << std::endl;
-    std::cout << "Decrypted:  " << M << std::endl;
-    std::cout << "-----------example---------" << std::endl;
-    Key examplepublickey = Key(5, 119);
-    Key exampleprivatekey = Key(77, 119);
-    uint32_t ems = 19;
-    uint32_t eC = EncryptOrDecryptMessage(ems,examplepublickey);
-    uint32_t eM = EncryptOrDecryptMessage(eC,exampleprivatekey);
-    std::cout << "Plaintext:  " << ems << std::endl;
-    std::cout << "Ciphertext: " << eC << std::endl;
-    std::cout << "Decrypted:  " << eM << std::endl;
-    return 0;
+uint64_t EncryptOrDecryptMessage(uint64_t ms, Key key){
+    return Square_and_Multiply(ms, key.exp, key.n);
+}
+
+Keys ProductKeys(){
+    uint64_t p, q;
+    selectPQ(p, q);
+    uint64_t n = p * q;
+    uint64_t T = calculateT(p, q);
+    uint64_t e = calculatePublicKey(T);
+    uint64_t d = calculatePrivateKey(T, e);
+    Key publickey = Key(e, n);
+    Key privatekey = Key(d, n);
+    return Keys(publickey, privatekey);
 }

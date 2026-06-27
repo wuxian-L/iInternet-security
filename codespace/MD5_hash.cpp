@@ -7,7 +7,6 @@ uint32_t RotateLeft(uint32_t value, uint32_t shift)
 //step1填充比特
 void AppendPadding(std::vector<uint8_t> &message)
 {
-    uint64_t originalBitLength = message.size() * 8;
     message.push_back(0x80);
     while (message.size() % 64 != 56)
     {
@@ -106,7 +105,7 @@ void ProcessMessageBlocks(MD5Context &ctx, const uint8_t block[64])
     ctx.C += CC;
     ctx.D += DD;
 }
-void MD5Hash(const std::vector<uint8_t> input, uint8_t digest[16])
+uint32_t* MD5Hash(const std::vector<uint8_t> input, uint8_t digest[16])
 {
     std::vector<uint8_t> msg = input;
     uint64_t bitlen = msg.size() * 8;//比特数
@@ -120,7 +119,9 @@ void MD5Hash(const std::vector<uint8_t> input, uint8_t digest[16])
     p[1] = ctx.B;
     p[2] = ctx.C;
     p[3] = ctx.D;
+    return p;
 }
+/*
 int main()
 {
     std::ifstream in("C:/Users/10497/Documents/InternetSecurity/input.txt", std::ios::binary);
@@ -134,3 +135,4 @@ int main()
         printf("%02x", digest[i]);
     return 0;
 }
+*/
