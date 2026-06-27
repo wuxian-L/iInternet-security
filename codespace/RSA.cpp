@@ -7,13 +7,7 @@
 计算私钥 D (D*E)%T = 1
 (D,T)
 */
-#include<iostream>
-#include<ctime>
-#include<cstdlib>
-#include<fstream>
-#include<utility>
-#include<cstdint>
-#include<windows.h>
+#include "RSA.h"
 bool isPrime(int n) {
     if (n <= 1) return false;
     for (int i = 2; i * i <= n; ++i) {
@@ -68,22 +62,8 @@ uint32_t Square_and_Multiply(uint32_t a,uint32_t x,uint32_t n){
     }
     return y;
 }
-struct Key{
-    uint32_t exp;
-    uint32_t n;
-    Key(uint32_t e,uint32_t num){
-        exp = e;
-        n = num;
-    }
-};
-struct Keys{
-    Key publickey;
-    Key privatekey;
-    Keys(Key puk,Key prk){
-        publickey = puk;
-        privatekey = prk;
-    }
-};
+struct Key;
+struct Keys;
 uint32_t EncryptOrDecryptMessage(uint32_t ms,Key key){
     return Square_and_Multiply(ms,key.exp,key.n);
 }

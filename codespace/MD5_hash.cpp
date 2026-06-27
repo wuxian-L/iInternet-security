@@ -1,7 +1,4 @@
-#include <iostream>
-#include <fstream>
-#include <vector>
-#include <cmath>
+#include "MD5_hash.h"
 //循环左移
 uint32_t RotateLeft(uint32_t value, uint32_t shift)
 {
